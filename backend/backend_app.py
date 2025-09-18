@@ -4,7 +4,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Sample list of blog posts
 POSTS = [
     {"id": 1, "title": "First post", "content": "This is the first post."},
     {"id": 2, "title": "Second post", "content": "This is the second post."},
@@ -44,6 +43,18 @@ def add_post():
     POSTS.append(new_post)
 
     return jsonify(new_post), 201
+
+# DELETE endpoint: delete a post by id
+@app.route('/api/posts/<int:id>', methods=['DELETE'])
+def delete_post(id):
+    # Find the post by ID
+    post_to_delete = next((post for post in POSTS if post['id'] == id), None)
+    if not post_to_delete:
+        return jsonify({"error": f"Post with id {id} not found"}), 404
+
+    # Remove the post from the list
+    POSTS.remove(post_to_delete)
+    return jsonify({"message": f"Post with id {id} has been deleted successfully."}), 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5002, debug=True)
