@@ -1,104 +1,101 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_swagger_ui import get_swaggerui_blueprint
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 POSTS = [
-    {"id": 1, "title": "First post", "content": "This is the first post."},
-    {"id": 2, "title": "Second post", "content": "This is the second post."},
+    {
+        "id": 1,
+        "title": "First post",
+        "content": "This is the first post.",
+        "author": "Alice",
+        "date": "2025-09-01"
+    },
+    {
+        "id": 2,
+        "title": "Second post",
+        "content": "This is the second post.",
+        "author": "Bob",
+        "date": "2025-09-05"
+    },
 ]
 
-# ------------------- Swagger Configuration -------------------
-SWAGGER_URL = "/api/docs"           # Swagger endpoint, z.B. http://localhost:5002/api/docs
-API_URL = "/static/masterblog.json" # Pfad zur JSON-Datei mit Swagger-Definition
-
-swagger_ui_blueprint = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': 'Masterblog API'
-    }
-)
-app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
-# ------------------------------------------------------------
-
-# Helper function to generate the next unique ID
 def get_next_id():
     if POSTS:
         return max(post['id'] for post in POSTS) + 1
     return 1
 
-# GET endpoint: list all posts with optional sorting
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    sort_field = request.args.get('sort')
-    direction = request.args.get('direction', 'asc').strip()
-
-    valid_fields = ['title', 'content']
-    valid_directions = ['asc', 'desc']
-
-    if sort_field and sort_field not in valid_fields:
-        return jsonify({"error": f"Invalid sort field: {sort_field}"}), 400
-    if direction not in valid_directions:
-        return jsonify({"error": f"Invalid direction: {direction}"}), 400
-
     posts = POSTS.copy()
-    if sort_field:
-        reverse = direction == 'desc'
-        posts.sort(key=lambda x: x[sort_field].lower(), reverse=reverse)
+    sort_field = request.args.get('sort')
+    direction = request.args.get('direction', 'asc')
 
+    if sort_field:
+        if sort_field not in ['title', 'content', 'author', 'date']:
+            return jsonify({"error": f"Invalid sort field: {sort_field}"}), 400
+        reverse = direction == 'desc'
+        if sort_field == 'date':
+            posts.sort(key=lambda x: datetime.strptime(x['date'], "%Y-%m-%d"), reverse=reverse)
+        else:
+            posts.sort(key=lambda x: x[sort_field], reverse=reverse)
     return jsonify(posts), 200
 
-# POST endpoint: add a new post
 @app.route('/api/posts', methods=['POST'])
 def add_post():
     data = request.get_json()
-    if not data or 'title' not in data or 'content' not in data:
-        missing_fields = []
-        if not data or 'title' not in data:
-            missing_fields.append('title')
-        if not data or 'content' not in data:
-            missing_fields.append('content')
+    missing_fields = [field for field in ['title', 'content', 'author', 'date'] if field not in data]
+    if missing_fields:
         return jsonify({"error": f"Missing field(s): {', '.join(missing_fields)}"}), 400
 
     new_post = {
         "id": get_next_id(),
         "title": data['title'],
-        "content": data['content']
+        "content": data['content'],
+        "author": data['author'],
+        "date": data['date']
     }
     POSTS.append(new_post)
     return jsonify(new_post), 201
 
-# DELETE endpoint: delete a post by id
-@app.route('/api/posts/<int:id>', methods=['DELETE'])
-def delete_post(id):
-    post_to_delete = next((post for post in POSTS if post['id'] == id), None)
-    if not post_to_delete:
-        return jsonify({"error": f"Post with id {id} not found"}), 404
-    POSTS.remove(post_to_delete)
-    return jsonify({"message": f"Post with id {id} has been deleted successfully."}), 200
+@app.route('/api/posts/<int:post_id>', methods=['PUT'])
+def update_post(post_id):
+    post = next((p for p in POSTS if p['id'] == post_id), None)
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
 
-# PUT endpoint: update a post by id
-@app.route('/api/posts/<int:id>', methods=['PUT'])
-def update_post(id):
     data = request.get_json()
-    post_to_update = next((post for post in POSTS if post['id'] == id), None)
-    if not post_to_update:
-        return jsonify({"error": f"Post with id {id} not found"}), 404
-    if data.get('title') is not None:
-        post_to_update['title'] = data['title']
-    if data.get('content') is not None:
-        post_to_update['content'] = data['content']
-    return jsonify(post_to_update), 200
+    for field in ['title', 'content', 'author', 'date']:
+        if field in data:
+            post[field] = data[field]
 
-# SEARCH endpoint: search posts by title or content
+    return jsonify(post), 200
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    global POSTS
+    post = next((p for p in POSTS if p['id'] == post_id), None)
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
+    POSTS = [p for p in POSTS if p['id'] != post_id]
+    return jsonify({"message": f"Post with id {post_id} has been deleted successfully."}), 200
+
 @app.route('/api/posts/search', methods=['GET'])
 def search_posts():
-    title_query = request.args.get('title', '').lower()
-    content_query = request.args.get('content', '').lower()
-    results = [post for post in POSTS if (title_query in post['title'].lower()) or (content_query in post['content'].lower())]
+    title_q = request.args.get('title', '').lower()
+    content_q = request.args.get('content', '').lower()
+    author_q = request.args.get('author', '').lower()
+    date_q = request.args.get('date', '').lower()
+
+    results = [
+        p for p in POSTS
+        if title_q in p['title'].lower()
+        or content_q in p['content'].lower()
+        or author_q in p['author'].lower()
+        or date_q in p['date']
+    ]
     return jsonify(results), 200
 
 if __name__ == '__main__':
