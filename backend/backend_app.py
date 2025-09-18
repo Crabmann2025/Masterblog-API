@@ -15,10 +15,26 @@ def get_next_id():
         return max(post['id'] for post in POSTS) + 1
     return 1
 
-# GET endpoint: list all posts
+# GET endpoint: list all posts with optional sorting
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    return jsonify(POSTS), 200
+    sort_field = request.args.get('sort')
+    direction = request.args.get('direction', 'asc')
+
+    valid_fields = ['title', 'content']
+    valid_directions = ['asc', 'desc']
+
+    if sort_field and sort_field not in valid_fields:
+        return jsonify({"error": f"Invalid sort field: {sort_field}"}), 400
+    if direction not in valid_directions:
+        return jsonify({"error": f"Invalid direction: {direction}"}), 400
+
+    posts = POSTS.copy()
+    if sort_field:
+        reverse = direction == 'desc'
+        posts.sort(key=lambda x: x[sort_field].lower(), reverse=reverse)
+
+    return jsonify(posts), 200
 
 # POST endpoint: add a new post
 @app.route('/api/posts', methods=['POST'])
@@ -47,12 +63,9 @@ def add_post():
 # DELETE endpoint: delete a post by id
 @app.route('/api/posts/<int:id>', methods=['DELETE'])
 def delete_post(id):
-    # Find the post by ID
     post_to_delete = next((post for post in POSTS if post['id'] == id), None)
     if not post_to_delete:
         return jsonify({"error": f"Post with id {id} not found"}), 404
-
-    # Remove the post from the list
     POSTS.remove(post_to_delete)
     return jsonify({"message": f"Post with id {id} has been deleted successfully."}), 200
 
@@ -60,18 +73,13 @@ def delete_post(id):
 @app.route('/api/posts/<int:id>', methods=['PUT'])
 def update_post(id):
     data = request.get_json()
-
-    # Find the post by ID
     post_to_update = next((post for post in POSTS if post['id'] == id), None)
     if not post_to_update:
         return jsonify({"error": f"Post with id {id} not found"}), 404
-
-    # Update title and/or content if provided
     if data.get('title') is not None:
         post_to_update['title'] = data['title']
     if data.get('content') is not None:
         post_to_update['content'] = data['content']
-
     return jsonify(post_to_update), 200
 
 # SEARCH endpoint: search posts by title or content
