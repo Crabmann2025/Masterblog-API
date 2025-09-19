@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog Posts</title>
+    <title>📚 Blog Posts</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -25,15 +25,9 @@
         </div>
 
         <!-- Posts container -->
-        <div id="post-container">
-            <!-- Blog posts werden hier von JavaScript eingefügt -->
-        </div>
+        <div id="post-container"></div>
     </div>
 
-    <script src="static/main.js"></script>
-    <script>
-        // Posts direkt beim Laden der Seite anzeigen
-        document.addEventListener('DOMContentLoaded', loadPosts);
-    </script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

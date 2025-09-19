@@ -2,6 +2,7 @@ async function loadPosts() {
     const baseUrl = document.getElementById("api-base-url").value;
     const response = await fetch(`${baseUrl}/posts`);
     const posts = await response.json();
+
     const container = document.getElementById("post-container");
     container.innerHTML = '';
 
@@ -11,8 +12,10 @@ async function loadPosts() {
         div.innerHTML = `
             <h2>${post.title}</h2>
             <p>${post.content}</p>
-            <button onclick="deletePost(${post.id})">Delete</button>
-            <button onclick="editPost(${post.id})">Edit</button>
+            <div class="post-buttons">
+                <button onclick="deletePost(${post.id})">Delete</button>
+                <button class="edit" onclick="editPost(${post.id})">Edit</button>
+            </div>
         `;
         container.appendChild(div);
     });
@@ -63,3 +66,6 @@ async function editPost(id) {
 
     loadPosts();
 }
+
+// Lade Posts direkt beim Seitenaufruf
+document.addEventListener('DOMContentLoaded', loadPosts);

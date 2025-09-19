@@ -7,7 +7,7 @@ body {
     background-color: #f5f5f5;
     margin: 0;
     padding: 20px 0;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .container {
@@ -21,7 +21,7 @@ body {
 
 .input-field {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 20px;
 }
 
@@ -32,17 +32,8 @@ body {
     font-size: 16px;
     border: none;
     border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.5s ease;
-}
-
-.input-field input {
-    flex-grow: 1;
-    margin-right: 10px;
-}
-
-.input-field input::placeholder {
-    color: #aaa;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
 }
 
 .input-field button {
@@ -74,10 +65,13 @@ body {
     color: #333;
 }
 
-.post button {
-    display: block; /* Buttons untereinander */
-    width: 100px;
+.post-buttons {
     margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.post-buttons button {
     background-color: #ff4444;
     color: #fff;
     border: none;
@@ -86,14 +80,10 @@ body {
     cursor: pointer;
 }
 
-.post button:nth-child(3) {
-    background-color: #4466ee; /* Edit Button blau */
+.post-buttons button.edit {
+    background-color: #44aa44;
 }
 
-.post button:hover {
-    background-color: #cc0000;
-}
-
-.post button:nth-child(3):hover {
-    background-color: #3355dd; /* Edit Button hover */
+.post-buttons button:hover {
+    opacity: 0.8;
 }
