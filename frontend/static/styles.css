@@ -75,9 +75,9 @@ body {
 }
 
 .post button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    display: block; /* Buttons untereinander */
+    width: 100px;
+    margin-top: 10px;
     background-color: #ff4444;
     color: #fff;
     border: none;
@@ -86,6 +86,14 @@ body {
     cursor: pointer;
 }
 
+.post button:nth-child(3) {
+    background-color: #4466ee; /* Edit Button blau */
+}
+
 .post button:hover {
     background-color: #cc0000;
+}
+
+.post button:nth-child(3):hover {
+    background-color: #3355dd; /* Edit Button hover */
 }

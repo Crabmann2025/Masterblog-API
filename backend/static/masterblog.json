@@ -13,6 +13,41 @@
         "produces": ["application/json"],
         "tags": ["Post"],
         "responses": { "200": { "description": "Successful operation" } }
+      },
+      "post": {
+        "summary": "Add a new post",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "type": "object", "properties": { "title": { "type": "string" }, "content": { "type": "string" } } } }
+        ],
+        "responses": { "201": { "description": "Post created" } }
+      }
+    },
+    "/api/posts/{id}": {
+      "put": {
+        "summary": "Update a post",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": { "200": { "description": "Post updated" }, "404": { "description": "Post not found" } }
+      },
+      "delete": {
+        "summary": "Delete a post",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }],
+        "produces": ["application/json"],
+        "responses": { "200": { "description": "Post deleted" }, "404": { "description": "Post not found" } }
+      }
+    },
+    "/api/posts/search": {
+      "get": {
+        "summary": "Search posts",
+        "parameters": [
+          { "name": "title", "in": "query", "type": "string" },
+          { "name": "content", "in": "query", "type": "string" }
+        ],
+        "produces": ["application/json"],
+        "responses": { "200": { "description": "Search results" } }
       }
     }
   }
