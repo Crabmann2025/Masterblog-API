@@ -37,24 +37,32 @@ function loadPosts() {
 
 // Function to send a POST request to the API to add a new post
 function addPost() {
-    // Retrieve the values from the input fields
     var baseUrl = document.getElementById('api-base-url').value;
     var postTitle = document.getElementById('post-title').value;
     var postContent = document.getElementById('post-content').value;
 
-    // Use the Fetch API to send a POST request to the /posts endpoint
+    // Automatisch setzen
+    var postAuthor = "Guest";
+    var postDate = new Date().toISOString().split('T')[0];
+
     fetch(baseUrl + '/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: postTitle, content: postContent })
+        body: JSON.stringify({
+            title: postTitle,
+            content: postContent,
+            author: postAuthor,
+            date: postDate
+        })
     })
-    .then(response => response.json())  // Parse the JSON data from the response
+    .then(response => response.json())
     .then(post => {
         console.log('Post added:', post);
-        loadPosts(); // Reload the posts after adding a new one
+        loadPosts(); // Neu laden
     })
-    .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
+    .catch(error => console.error('Error:', error));
 }
+
 
 // Function to send a DELETE request to the API to delete a post
 function deletePost(postId) {
